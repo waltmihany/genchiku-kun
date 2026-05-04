@@ -1,0 +1,41 @@
+{
+  "name": "genchiku-kun-v4",
+  "private": true,
+  "version": "0.4.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run verify:public-facades && npm run verify:public-layer && npm run verify:react-screens && npm run verify:screen-shell-helpers && npm run verify:screen-shell-state && npm run verify:screen-shell-view-models && npm run verify:screen-shells && npm run verify:app-bindings && npm run verify:screen-transitions && npm run verify:bridge-assembly && npm run verify:bridge-leaf-apis && npm run verify:state && npm run verify:utils && npm run verify:dependencies && npm run verify:react-api-contexts && npm run verify:react-api-assembly && npm run verify:ui-helpers-contexts && npm run verify:ui-helpers-assembly && npm run verify:runtime-store && npm run verify:runtime-bridge-contexts && npm run verify:contract-coverage && vite build",
+    "preview": "vite preview",
+    "balance:check": "node scripts/runBalanceCheck.mjs",
+    "verify:public-facades": "node scripts/verifyGameCorePublicFacades.mjs",
+    "verify:public-layer": "node scripts/verifyGameCorePublicLayer.mjs",
+    "verify:react-screens": "node scripts/verifyGameCoreReactScreens.mjs",
+    "verify:screen-shell-helpers": "node scripts/verifyGameCoreScreenShellHelpers.mjs",
+    "verify:screen-shell-state": "node scripts/verifyGameCoreScreenShellState.mjs",
+    "verify:screen-shell-view-models": "node scripts/verifyGameCoreScreenShellViewModels.mjs",
+    "verify:screen-shells": "node scripts/verifyGameCoreScreenShells.mjs",
+    "verify:app-bindings": "node scripts/verifyGameCoreAppBindings.mjs",
+    "verify:screen-transitions": "node scripts/verifyGameCoreScreenTransitions.mjs",
+    "verify:bridge-assembly": "node scripts/verifyGameCoreBridgeAssembly.mjs",
+    "verify:bridge-leaf-apis": "node scripts/verifyGameCoreBridgeLeafApis.mjs",
+    "verify:state": "node scripts/verifyGameCoreState.mjs",
+    "verify:utils": "node scripts/verifyGameCoreUtils.mjs",
+    "verify:dependencies": "node scripts/verifyGameCoreDependencies.mjs",
+    "verify:react-api-contexts": "node scripts/verifyGameCoreReactApiContexts.mjs",
+    "verify:react-api-assembly": "node scripts/verifyGameCoreReactApiAssembly.mjs",
+    "verify:ui-helpers-contexts": "node scripts/verifyGameCoreUiHelpersContexts.mjs",
+    "verify:ui-helpers-assembly": "node scripts/verifyGameCoreUiHelpersAssembly.mjs",
+    "verify:runtime-store": "node scripts/verifyGameCoreRuntimeStore.mjs",
+    "verify:runtime-bridge-contexts": "node scripts/verifyGameCoreRuntimeBridgeContexts.mjs",
+    "verify:contract-coverage": "node scripts/verifyGameCoreContractCoverage.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.10"
+  }
+}
