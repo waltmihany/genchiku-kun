@@ -7,7 +7,7 @@
 ## 公開URL
 
 Production:
-https://genchiku-d9eza5nu4-waltmihanys-projects.vercel.app
+https://genchiku-kun-waltmihanys-projects.vercel.app
 
 GitHub:
 https://github.com/waltmihany/genchiku-kun
@@ -54,12 +54,11 @@ npm run preview
 
 ## 現在の状態
 
-現時点では v4 安定版です。まずブラウザで遊べる公開版を優先しており、ゲーム本体のバランスや進行ロジックは維持しています。
+現時点では v5 版です。まずブラウザで遊べる公開版を優先しており、ゲーム本体のバランスや進行ロジックは維持しています。
 
 以下はまだ未実装です。
 
 - localStorage セーブ機能
-- 放置進行
 - 1日1年モード
 - PWA化
 - PWA通知

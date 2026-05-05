@@ -112,10 +112,33 @@ export function createGameCoreDashboardReactApi(ctx) {
     const keys = ["bridge", "road", "disaster", "deconstruction", "outreach", "finance"];
     return keys.map((key) => {
       const staff = staffData[key];
+      const comment = pickStripComment(key);
+      const tone = comment === staff.comments.bad ? "negative" : comment === staff.comments.warning ? "warning" : "positive";
+      let warning = "";
+      if (key === "bridge") {
+        const worstBridge = getWorstInfrastructure(gameState, "bridge");
+        if (worstBridge && worstBridge.condition < 55) warning = `${worstBridge.name}（状態 ${Math.round(worstBridge.condition)}）`;
+      } else if (key === "road") {
+        const worstRoad = getWorstInfrastructure(gameState, "road");
+        if (worstRoad && worstRoad.condition < 55) warning = `${worstRoad.name}（状態 ${Math.round(worstRoad.condition)}）`;
+      } else if (key === "disaster") {
+        if (gameState.indicators.safety < 55) warning = `安全度 ${Math.round(gameState.indicators.safety)}`;
+      } else if (key === "deconstruction") {
+        if (gameState.indicators.futureBurden > 55) warning = `将来負担 ${Math.round(gameState.indicators.futureBurden)}`;
+      } else if (key === "outreach") {
+        if (gameState.indicators.rebellion > 35) warning = `反乱 ${Math.round(gameState.indicators.rebellion)}`;
+      } else if (key === "finance") {
+        if (gameState.indicators.fiscalHealth < 50) warning = `財政健全度 ${Math.round(gameState.indicators.fiscalHealth)}`;
+      }
       return {
         key,
+        name: staff.name,
+        role: staff.role,
+        avatar: staff.icon,
         label: `${staff.icon} ${staff.name} / ${staff.role}`,
-        comment: pickStripComment(key),
+        comment,
+        tone,
+        warning,
       };
     });
   }
@@ -334,9 +357,18 @@ export function createGameCoreDashboardReactApi(ctx) {
       stickyActionLabel: stickyLabel,
       stickySubtext: `${phaseLabel(gameState.phase)}を進めます`,
       map: buildDashboardMapViewModel(),
-      regions: buildDashboardRegions(),
+      regions: buildDashboardRegions().map((r) => ({
+        id: r.areaId,
+        name: r.name,
+        satisfaction: r.satisfaction,
+        rebellion: r.rebellion,
+        note: r.note,
+        tone: r.tone,
+      })),
       deconstructionItems: buildDashboardDeconstructionItems(),
       staffItems: buildDashboardStaffItems(),
+      monthLabel: gameState.phase === "monthly" ? MONTHS[gameState.monthIndex] : gameState.phase === "report" ? "年度末" : "年度準備",
+      recentLog: (gameState.log || []).slice(0, 8),
     };
   }
 

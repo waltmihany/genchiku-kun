@@ -7,6 +7,7 @@ dist
 .vercel-cache
 .vercel-global
 .npm-cache
+scripts/migrations/tmp_*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
