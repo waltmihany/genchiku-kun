@@ -2880,3 +2880,733 @@ button:disabled {
   align-items: center;
   justify-content: center;
 }
+
+
+/* === v5.1: MapView === */
+.map-view {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  margin: 0 auto;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f7f1e6 0%, #efe4d2 100%);
+  border: 1px solid #e1d3bd;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  touch-action: pan-y;
+}
+
+.map-view-inner {
+  position: relative;
+  transform-origin: 0 0;
+  /* 親幅に合わせてスケールするためのCSS変数フォールバック */
+}
+
+@media (max-width: 760px) {
+  .map-view {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .map-view-inner {
+    /* スマホでは横スクロール可能にして全体を見せる */
+    min-width: 540px;
+  }
+}
+
+/* 地区 */
+.mv-area {
+  position: absolute;
+  border-radius: 18px;
+  border: 2px dashed rgba(124, 117, 109, 0.3);
+  background: rgba(255, 255, 255, 0.55);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 6px 8px;
+  pointer-events: none;
+  transition: background 0.4s ease, border-color 0.4s ease;
+}
+.mv-area-positive { background: rgba(212, 236, 219, 0.6); border-color: #8ec0a2; }
+.mv-area-warning { background: rgba(247, 226, 185, 0.65); border-color: #d8b46c; }
+.mv-area-negative { background: rgba(243, 207, 201, 0.7); border-color: #c87a72; }
+.mv-area-neutral { background: rgba(255, 255, 255, 0.55); }
+
+.mv-area-name {
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: #5a4f43;
+  background: rgba(255, 253, 249, 0.8);
+  padding: 2px 6px;
+  border-radius: 8px;
+  margin-bottom: 2px;
+}
+.mv-area-mood {
+  font-size: 0.7rem;
+  color: #6b6055;
+  background: rgba(255, 253, 249, 0.85);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+/* 川 */
+.mv-river {
+  position: absolute;
+  background: linear-gradient(180deg, #b6dceb 0%, #8fc6db 100%);
+  opacity: 0.6;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+/* 道路 */
+.mv-road {
+  position: absolute;
+  border: 0;
+  padding: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #c9b89b;
+  transition: filter 0.2s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: rgba(228, 143, 139, 0.2);
+}
+.mv-road.is-old { background: repeating-linear-gradient(90deg, #b8a786 0 8px, #a8966f 8px 14px); }
+.mv-tone-safe { background: #6fb389; }
+.mv-tone-warning { background: #e6b85c; }
+.mv-tone-danger { background: #d86a6a; }
+.mv-tone-restricted { background: repeating-linear-gradient(45deg, #d68a4d 0 6px, #c46f3e 6px 12px); }
+.mv-tone-removed { background: transparent; border: 1px dashed #b8a786; }
+
+.mv-road.is-active,
+.mv-bridge.is-active {
+  box-shadow: 0 0 0 3px rgba(94, 154, 144, 0.6), 0 4px 14px rgba(94, 154, 144, 0.25);
+  filter: brightness(1.05);
+}
+
+.mv-road.is-warned,
+.mv-bridge.is-warned {
+  animation: mv-warn-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes mv-warn-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(216, 106, 106, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(216, 106, 106, 0.45); }
+}
+
+.mv-road-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -150%);
+  background: rgba(255, 253, 249, 0.92);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 0.65rem;
+  color: #5a4f43;
+  white-space: nowrap;
+  border: 1px solid #ead9c8;
+  pointer-events: none;
+}
+
+/* 橋 */
+.mv-bridge {
+  position: absolute;
+  border: 0;
+  padding: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #6fb389;
+  transition: filter 0.2s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: rgba(228, 143, 139, 0.2);
+}
+.mv-bridge-label {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translate(-50%, -2px);
+  background: rgba(255, 253, 249, 0.92);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 0.65rem;
+  color: #5a4f43;
+  white-space: nowrap;
+  border: 1px solid #ead9c8;
+  pointer-events: none;
+}
+
+.mv-warn-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #d86a6a;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(216, 106, 106, 0.4);
+}
+
+/* 施設 */
+.mv-facility {
+  position: absolute;
+  width: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+.mv-facility-icon {
+  font-size: 1.1rem;
+  background: rgba(255, 253, 249, 0.92);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ead9c8;
+  box-shadow: 0 2px 6px rgba(124, 117, 109, 0.15);
+}
+.mv-facility-label {
+  margin-top: 2px;
+  font-size: 0.62rem;
+  color: #5a4f43;
+  background: rgba(255, 253, 249, 0.85);
+  padding: 1px 4px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* 動くドット */
+.mv-mover {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+  animation: mv-move var(--dur, 12s) ease-in-out infinite alternate;
+  will-change: transform;
+}
+.mv-mover-person { background: #6a8aa8; box-shadow: 0 0 0 1px rgba(255,255,255,0.6); }
+.mv-mover-car { background: #8b5a3c; width: 8px; height: 5px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(255,255,255,0.6); }
+.mv-mover-tourist { background: #e3a953; box-shadow: 0 0 0 1px rgba(255,255,255,0.6); }
+
+@keyframes mv-move {
+  0% { transform: translate(var(--from-x), var(--from-y)); }
+  100% { transform: translate(var(--to-x), var(--to-y)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-mover { animation: none; transform: translate(var(--from-x), var(--from-y)); }
+  .mv-road.is-warned, .mv-bridge.is-warned { animation: none; }
+}
+
+/* インフラ詳細カード */
+.mv-detail-card {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid #efdfcf;
+  background: #fffdf9;
+}
+.mv-detail-card-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 18px;
+  border: 1px dashed #e2d3c2;
+  border-radius: 14px;
+  background: #fffaf3;
+  margin-top: 14px;
+  font-size: 0.92rem;
+}
+.mv-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.mv-detail-head strong {
+  font-size: 1.05rem;
+}
+.mv-detail-head .risk-badge {
+  flex-shrink: 0;
+}
+.mv-detail-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.mv-detail-meta strong { color: var(--ink); font-weight: 700; }
+.mv-detail-staff {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff8f2;
+  border: 1px solid #f0dfd1;
+  font-size: 0.88rem;
+  color: #5f564d;
+  line-height: 1.55;
+}
+
+/* スワイプ用 */
+.mobile-tab-content {
+  touch-action: pan-y;
+}
+
+
+/* === v5.1: Map detail subtitle / map tab sub title === */
+.mv-detail-sub {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.map-tab-sub-title {
+  margin: 18px 0 8px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+
+/* === v5.2: Map emphasis & changes === */
+
+/* 危険上位インフラの強調 */
+.mv-road.is-top-danger,
+.mv-bridge.is-top-danger {
+  outline: 2px solid #c8423a;
+  outline-offset: 1px;
+  z-index: 6;
+  animation: mv-top-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes mv-top-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(216, 106, 106, 0.0);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(216, 106, 106, 0.35);
+  }
+}
+
+/* 危険低めのインフラは控えめ */
+.mv-road.is-dim,
+.mv-bridge.is-dim {
+  opacity: 0.78;
+}
+
+/* 月送り時の変化ハイライト（赤=悪化 / 緑=改善） */
+.mv-road.is-changed,
+.mv-bridge.is-changed {
+  animation: mv-changed-flash 1.6s ease-out;
+}
+
+@keyframes mv-changed-flash {
+  0% { box-shadow: 0 0 0 0 rgba(216, 106, 106, 0.0); }
+  30% { box-shadow: 0 0 0 8px rgba(216, 106, 106, 0.45); }
+  100% { box-shadow: 0 0 0 0 rgba(216, 106, 106, 0.0); }
+}
+
+.mv-road.is-changed-up,
+.mv-bridge.is-changed-up {
+  animation: mv-changed-up-flash 1.6s ease-out;
+}
+
+@keyframes mv-changed-up-flash {
+  0% { box-shadow: 0 0 0 0 rgba(111, 179, 137, 0.0); }
+  30% { box-shadow: 0 0 0 8px rgba(111, 179, 137, 0.45); }
+  100% { box-shadow: 0 0 0 0 rgba(111, 179, 137, 0.0); }
+}
+
+/* 怒りアイコン */
+.mv-angry-icon {
+  position: absolute;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 7;
+  animation: mv-angry-bob 2.4s ease-in-out infinite;
+}
+
+@keyframes mv-angry-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* 「今日見るべき3つ」 */
+.today-highlights {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffaf3 0%, #fff7ec 100%);
+  border: 1px solid #efdfcf;
+  margin-bottom: 12px;
+}
+
+.today-highlights-title {
+  margin: 0 0 2px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #6b574a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.today-highlight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #fffdf9;
+  border: 1px solid #efdfcf;
+}
+
+.today-highlight-item.tone-positive { border-color: #b8dcc6; background: #f3faf5; }
+.today-highlight-item.tone-warning { border-color: #f0d3a0; background: #fff5e1; }
+.today-highlight-item.tone-negative { border-color: #f0b4ad; background: #fdebe8; }
+.today-highlight-item.tone-neutral { border-color: #efdfcf; background: #fffdf9; }
+
+.today-highlight-num {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ead9c8;
+  color: #5a4f43;
+  font-weight: 800;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.today-highlight-item.tone-negative .today-highlight-num { background: #d86a6a; color: white; }
+.today-highlight-item.tone-warning .today-highlight-num { background: #e6b85c; color: white; }
+.today-highlight-item.tone-positive .today-highlight-num { background: #6fb389; color: white; }
+
+.today-highlight-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.today-highlight-title {
+  display: block;
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.today-highlight-detail {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* 次にすべきヒント */
+.next-action-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f6f2eb;
+  border: 1px dashed #d6c4ad;
+  font-size: 0.85rem;
+  color: #5f564d;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.next-action-hint.tone-negative { background: #fdebe8; border-color: #f0b4ad; color: #8b3027; }
+.next-action-hint.tone-warning { background: #fff5e1; border-color: #f0d3a0; color: #8a5b1f; }
+.next-action-hint::before {
+  content: "👉";
+  flex: 0 0 auto;
+}
+
+/* 数値+意味ラベルの2行表示 */
+.value-with-meaning {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.value-with-meaning-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.value-with-meaning-num {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.value-with-meaning-state {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+.value-with-meaning-state.tone-positive { background: #d4ecdb; color: #2f6a45; }
+.value-with-meaning-state.tone-neutral { background: #ead9c8; color: #6b574a; }
+.value-with-meaning-state.tone-warning { background: #f7e2b9; color: #8a5b1f; }
+.value-with-meaning-state.tone-negative { background: #f3cfc9; color: #8b3027; }
+
+.value-with-meaning-meaning {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* インフラ詳細カード再構成 */
+.mv-detail-oneliner {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff8f2;
+  border: 1px solid #f0dfd1;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #5f564d;
+}
+
+.mv-detail-meta-rich {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.mv-detail-meta-cell {
+  background: #fffdf9;
+  border: 1px solid #efdfcf;
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+
+.mv-detail-meta-cell-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.mv-detail-hint {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f0faf4;
+  border: 1px dashed #8ec0a2;
+  font-size: 0.85rem;
+  color: #2f6a45;
+  line-height: 1.55;
+}
+
+.mv-detail-hint::before {
+  content: "💡 ";
+}
+
+/* 財政診断 */
+.fiscal-diagnosis {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.fiscal-diagnosis-line {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fffdf9;
+  border: 1px solid #efdfcf;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #5f564d;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.fiscal-diagnosis-line::before {
+  content: "・";
+  flex: 0 0 auto;
+  color: #b8a786;
+  font-weight: 800;
+}
+
+/* 担当者の優先度 */
+.staff-priority-summary {
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff8f2;
+  border: 1px solid #f0dfd1;
+  font-size: 0.85rem;
+  color: #5f564d;
+  line-height: 1.55;
+}
+
+.staff-priority-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 8px;
+}
+
+.staff-priority-badge.priority-high { background: #f3cfc9; color: #8b3027; }
+.staff-priority-badge.priority-mid { background: #f7e2b9; color: #8a5b1f; }
+.staff-priority-badge.priority-low { background: #ead9c8; color: #6b574a; }
+
+.staff-priority-reason {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* タブ切り替え時のフィードバック */
+.mobile-tab-content {
+  animation: tab-fade 0.18s ease-out;
+}
+
+@keyframes tab-fade {
+  from { opacity: 0.7; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mobile-tab-btn.active::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--primary-dark);
+}
+
+
+/* === v5.3: Result cause card === */
+.result-cause-card {
+  margin: 14px 0;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #f0b4ad;
+  background: linear-gradient(180deg, #fdf2ef 0%, #fffaf7 100%);
+}
+
+.result-cause-card h3 {
+  margin: 0 0 10px;
+  color: #8b3027;
+  font-size: 1.05rem;
+}
+
+.result-cause-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.result-cause-block:last-child {
+  margin-bottom: 0;
+}
+
+.result-cause-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #8b3027;
+  letter-spacing: 0.04em;
+}
+
+.result-cause-block p,
+.result-cause-block ul {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  color: #5f564d;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.result-cause-block ul li {
+  padding: 6px 10px;
+  margin-top: 4px;
+  background: #fffdf9;
+  border-radius: 10px;
+  border: 1px solid #efdfcf;
+}
+
+.result-cause-hints ul li {
+  border-color: #b8dcc6;
+  background: #f3faf5;
+  color: #2f6a45;
+}
+
+/* === v5.3: TodayHighlights compact mode === */
+.today-highlights.compact {
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.today-highlights.compact .today-highlights-title {
+  font-size: 0.78rem;
+}
+
+.today-highlights.compact .today-highlight-item {
+  padding: 6px 8px;
+}
+
+.today-highlights.compact .today-highlight-num {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  font-size: 0.7rem;
+}
+
+.today-highlights.compact .today-highlight-title {
+  font-size: 0.85rem;
+}
+
+.today-highlights.compact .today-highlight-detail {
+  font-size: 0.75rem;
+}
+
+.today-highlights summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 800;
+  color: #6b574a;
+  font-size: 0.82rem;
+  padding: 4px 0;
+}
+
+.today-highlights summary::-webkit-details-marker {
+  display: none;
+}
+
+.today-highlights summary::after {
+  content: " ▾";
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.today-highlights[open] summary::after {
+  content: " ▴";
+}

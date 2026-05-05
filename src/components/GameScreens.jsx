@@ -933,6 +933,38 @@ export function ResultScreenShell({ viewModel, onRestart, onReviewReport }) {
             </div>
           </section>
 
+          {viewModel.gameOverContext && (
+            <section className="result-cause-card">
+              <h3>なぜ負けたか</h3>
+              {viewModel.gameOverContext.directReason && (
+                <div className="result-cause-block">
+                  <span className="result-cause-label">直接の敗因</span>
+                  <p>{viewModel.gameOverContext.directReason}</p>
+                </div>
+              )}
+              {viewModel.gameOverContext.causeReasons?.length > 0 && (
+                <div className="result-cause-block">
+                  <span className="result-cause-label">起こっていたこと</span>
+                  <ul>
+                    {viewModel.gameOverContext.causeReasons.map((line, idx) => (
+                      <li key={idx}>{line}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {viewModel.gameOverContext.nextHints?.length > 0 && (
+                <div className="result-cause-block result-cause-hints">
+                  <span className="result-cause-label">次回のヒント</span>
+                  <ul>
+                    {viewModel.gameOverContext.nextHints.map((line, idx) => (
+                      <li key={idx}>{line}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </section>
+          )}
+
           <section className={`result-action-hero ${viewModel.toneClass}`}>
             <strong>{viewModel.isClear ? "次に伸ばす一手" : "次にやる一手"}</strong>
             <p>{viewModel.actionLead}</p>

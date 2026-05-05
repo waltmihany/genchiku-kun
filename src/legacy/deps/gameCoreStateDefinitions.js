@@ -57,6 +57,8 @@ export const GAME_CORE_STATE_TOP_LEVEL_KEYS = Object.freeze([
   "onboardingSeen",
   "log",
   "gameOverReason",
+  "gameOverContext",
+  "regionPreCollapseSeen",
   "clearMessage",
 ]);
 

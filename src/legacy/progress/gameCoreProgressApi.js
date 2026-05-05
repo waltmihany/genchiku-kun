@@ -740,6 +740,29 @@ function advanceMonth() {
   finalizeMonth();
 }
 
+function buildMonthlyLogLine(monthName) {
+  // 人間語で「今月何が起きたか」を短く記録。
+  const parts = [];
+  // 最も状態が悪いインフラを追跡
+  const activeInfra = gameState.infrastructures.filter((item) => item.operationStatus !== "removed");
+  const worstNow = activeInfra.length ? activeInfra.reduce((min, item) => item.condition < min.condition ? item : min, activeInfra[0]) : null;
+  // 地区反乱の変動を記録
+  const moods = gameState.regionalMoods || {};
+  const highRebel = AREA_ORDER.find((id) => (moods[id]?.rebellion || 0) >= 60);
+  if (highRebel) {
+    parts.push(`${areaName(highRebel)}の反発が高まっています`);
+  } else if (worstNow && worstNow.condition <= 35) {
+    parts.push(`${worstNow.name}が危険域に入りました`);
+  } else if (worstNow && worstNow.condition <= 45) {
+    parts.push(`${worstNow.name}の状態が落ちています`);
+  }
+  if (gameState.remainingBudget < 0 && gameState.reserveFund < 1500) {
+    parts.push("予備費が薄くなっています");
+  }
+  const summary = parts.length > 0 ? `: ${parts.slice(0, 2).join("、")}` : "";
+  return `${gameState.year}年 ${monthName}${summary}`;
+}
+
 function finalizeMonth() {
   const checked = checkGameState();
   if (checked) {
@@ -747,7 +770,7 @@ function finalizeMonth() {
   }
 
   const monthName = MONTHS[gameState.monthIndex];
-  gameState.log.unshift(`${gameState.year}年 ${monthName} を処理しました。`);
+  gameState.log.unshift(buildMonthlyLogLine(monthName));
   gameState.monthIndex += 1;
 
   if (gameState.monthIndex >= MONTHS.length) {
@@ -839,18 +862,110 @@ function finishYear() {
   screenTransitions.showDashboard();
 }
 
+function maybeRegionPreCollapseWarning() {
+  // 地区満足がゲームオーバー間近のときに、事前警告を段階的に出す。
+  if (!gameState.regionPreCollapseSeen) gameState.regionPreCollapseSeen = {};
+  AREA_ORDER.forEach((areaId) => {
+    const mood = gameState.regionalMoods[areaId];
+    const seen = gameState.regionPreCollapseSeen[areaId] || {};
+    // 25以下: 住民運動の兆し
+    if (mood.satisfaction <= 25 && !seen.stage1) {
+      seen.stage1 = true;
+      gameState.regionalAlerts.push(`${areaName(areaId)}で生活不満が蔓延し、住民運動の兆しが見えています。`);
+      gameState.log.unshift(`警告: ${areaName(areaId)}で生活不満が蔓延しています。`);
+    }
+    // 15以下: 議会圧力・支持率低下
+    if (mood.satisfaction <= 15 && !seen.stage2) {
+      seen.stage2 = true;
+      gameState.indicators.support = clamp(gameState.indicators.support - 2.5);
+      gameState.regionalAlerts.push(`${areaName(areaId)}の不満が議会圧力となり、支持率が掺さぶられています。`);
+      gameState.log.unshift(`重要警告: ${areaName(areaId)}の住民不満が議会を動かし始めました。`);
+    }
+    // 8以下: 不信任動議・最後警告
+    if (mood.satisfaction <= 8 && !seen.stage3) {
+      seen.stage3 = true;
+      gameState.indicators.support = clamp(gameState.indicators.support - 4);
+      gameState.regionalAlerts.push(`最後警告: ${areaName(areaId)}で不信任動議の動きがあります。今年度の判断が取り返したい状況です。`);
+      gameState.log.unshift(`最後警告: ${areaName(areaId)}で不信任動議の動きがあります。`);
+    }
+    // 同様に、反乱がゲージ限界近いとき
+    if (mood.rebellion >= 78 && !seen.rebStage1) {
+      seen.rebStage1 = true;
+      gameState.regionalAlerts.push(`${areaName(areaId)}で反発が高まり、住民集会が頻繁に開かれています。`);
+      gameState.log.unshift(`警告: ${areaName(areaId)}で住民集会が頻繁に開かれています。`);
+    }
+    if (mood.rebellion >= 90 && !seen.rebStage2) {
+      seen.rebStage2 = true;
+      gameState.indicators.support = clamp(gameState.indicators.support - 2.5);
+      gameState.regionalAlerts.push(`${areaName(areaId)}で大規模抗議の兆し。今すぐ手を打たないと町政偬転の危険があります。`);
+      gameState.log.unshift(`重要警告: ${areaName(areaId)}で大規模抗議の兆しがあります。`);
+    }
+    gameState.regionPreCollapseSeen[areaId] = seen;
+  });
+}
+
+function buildGameOverContext(directReason, areaId) {
+  // ゲームオーバー時の「なぜ負けたか」を人間語で記録。
+  const ctx = { directReason };
+  const areaLabel = areaId ? areaName(areaId) : null;
+  const allocation = gameState.budgetAllocation || {};
+  const indicators = gameState.indicators || {};
+  const reasonsBudget = [];
+  if (areaId === "central") {
+    if ((allocation.bridge + allocation.road) < 35) reasonsBudget.push("中央の幹線・生活道路保守予算が薄めでした");
+    if (allocation.outreach < 16) reasonsBudget.push("住民説明予算が薄めで、不満を火消ししきれませんでした");
+  } else if (areaId === "mountain") {
+    if (allocation.outreach < 17) reasonsBudget.push("住民対応予算が薄く、山間部の孤立不安を押さえられませんでした");
+    if (allocation.deconstruction >= 20) reasonsBudget.push("減築を急いだため、反発を押さえる説明が追いつきませんでした");
+  } else if (areaId === "river") {
+    if (allocation.disaster < 16) reasonsBudget.push("防災予算が薄く、川沿いの水害リスクを押さえられませんでした");
+    if (allocation.bridge < 16) reasonsBudget.push("橋梁予算が薄く、主要橋の口コミが悪化しました");
+  } else if (areaId === "tourism") {
+    if (allocation.road < 17) reasonsBudget.push("道路予算が薄く、観光アクセス路線の評判が落ちました");
+    if (allocation.outreach < 16) reasonsBudget.push("住民対応が薄く、観光ゾーン住民の評判低下を抑えられませんでした");
+  }
+  if ((indicators.fiscalHealth || 0) < 40 && allocation.reserve < 16) {
+    reasonsBudget.push("予備費が薄く、突発出費と財政悪化の連鎖を止められませんでした");
+  }
+  ctx.areaLabel = areaLabel;
+  ctx.causeReasons = reasonsBudget;
+  // 次回ヒント
+  const hints = [];
+  if (areaId === "central") {
+    hints.push("橋・道路を合わせて３５％以上にし、住民対応も１６％以上に保つと、中央の不満を押さえやすくなります");
+  } else if (areaId === "mountain") {
+    hints.push("住民対応を厚めにし、減築はペースを落として説明会を併せると進めやすくなります");
+  } else if (areaId === "river") {
+    hints.push("防災を１６％以上、橋梁予算も厚めにとると、川沿いの反発を抑えやすくなります");
+  } else if (areaId === "tourism") {
+    hints.push("道路と住民対応を厚めにとると、観光ゾーンの評判を保ちやすくなります");
+  }
+  if ((indicators.fiscalHealth || 0) < 50) {
+    hints.push("予備費を厚めにキープして、突発出費と財政悪化の連鎖を遮ると反発以外も耐えやすくなります");
+  }
+  ctx.nextHints = hints;
+  return ctx;
+}
+
+function setGameOverWithContext(directReason, areaId) {
+  gameState.gameOverContext = buildGameOverContext(directReason, areaId);
+  return setGameOver(directReason);
+}
+
 function checkGameState(allowClearCheck = false) {
   const activeInfrastructure = gameState.infrastructures.filter((item) => item.operationStatus !== "removed");
   const worst = activeInfrastructure.length ? activeInfrastructure.reduce((min, item) => Math.min(min, item.condition), 100) : 100;
+  // 事前警告を出しておく
+  maybeRegionPreCollapseWarning();
   const brokenRegion = AREA_ORDER.find((areaId) => gameState.regionalMoods[areaId].satisfaction <= 0);
   const explosiveRegion = AREA_ORDER.find((areaId) => gameState.regionalMoods[areaId].rebellion >= 100);
   if (brokenRegion) {
-    return setGameOver(`${areaName(brokenRegion)}の満足度が尽き、地区単位で町政への信用が崩れました。`);
+    return setGameOverWithContext(`${areaName(brokenRegion)}の満足度が尽き、地区単位で町政への信用が崩れました。`, brokenRegion);
   }
   if (explosiveRegion) {
     const mood = gameState.regionalMoods[explosiveRegion];
     if (mood.satisfaction <= 42 || gameState.indicators.support < 38) {
-      return setGameOver(`${areaName(explosiveRegion)}の反乱が限界突破。地区反発が全町の運営停止へ波及しました。`);
+      return setGameOverWithContext(`${areaName(explosiveRegion)}の反乱が限界突破。地区反発が全町の運営停止へ波及しました。`, explosiveRegion);
     }
     mood.rebellion = 90;
     mood.satisfaction = clamp(mood.satisfaction - 6);
@@ -859,16 +974,16 @@ function checkGameState(allowClearCheck = false) {
     gameState.regionalAlerts.push(`${areaName(explosiveRegion)}で大規模抗議が発生しました。緊急対応で全面停止は回避しましたが、支持率と地域信頼が大きく削られています。`);
   }
   if (gameState.indicators.support <= 0) {
-    return setGameOver("支持率がゼロになり、議会も住民もあなたを守ってくれませんでした。");
+    return setGameOverWithContext("支持率がゼロになり、議会も住民もあなたを守ってくれませんでした。", null);
   }
   if (gameState.indicators.rebellion >= 100) {
-    return setGameOver("反乱ゲージが限界突破。住民集会がそのまま町政停止イベントになりました。");
+    return setGameOverWithContext("反乱ゲージが限界突破。住民集会がそのまま町政停止イベントになりました。", null);
   }
   if (gameState.remainingBudget < -18000 || (gameState.remainingBudget < -7000 && gameState.reserveFund < 1600) || (gameState.remainingBudget < -2500 && gameState.reserveFund < 900 && gameState.indicators.fiscalHealth < 24) || gameState.indicators.fiscalHealth <= 0) {
-    return setGameOver("巨大赤字で財政が崩壊。橋より先に帳簿が落ちました。");
+    return setGameOverWithContext("巨大赤字で財政が崩壊。橋より先に帳簿が落ちました。", null);
   }
   if (worst <= 10 || (worst <= 20 && gameState.indicators.safety < 35)) {
-    return setGameOver("重大事故が発生。『そのうち直す』は事故後には効きませんでした。");
+    return setGameOverWithContext("重大事故が発生。『そのうち直す』は事故後には効きませんでした。", null);
   }
   if (allowClearCheck) {
     return false;

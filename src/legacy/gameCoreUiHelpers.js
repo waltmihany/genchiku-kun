@@ -24,6 +24,7 @@ export function createGameCoreUiHelpers(ctx) {
   function render() {
     const appRoot = sharedUiContext.getAppRoot();
     if (!appRoot) return;
+
     sharedUiContext.emitGameViewChange();
 
     const container = getElement("screenContainer");

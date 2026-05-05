@@ -732,6 +732,7 @@ function getResultViewModel() {
     regions: review.regions,
     weakestInfra: review.weakestInfra,
     hasReport: Boolean(gameState.reportEntries?.length),
+    gameOverContext: !isClear ? (gameState.gameOverContext || null) : null,
   };
 }
 

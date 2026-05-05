@@ -79,6 +79,8 @@ export function buildInitialState({ hasCompletedOnboarding, clone, averageRegion
     onboardingSeen: { dashboard: false, report: false, budget: false },
     log: ["町の新年度準備を開始。まずは現場の声を読むところからです。"],
     gameOverReason: "",
+    gameOverContext: null,
+    regionPreCollapseSeen: {},
     clearMessage: "",
   };
 }

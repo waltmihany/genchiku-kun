@@ -22,7 +22,7 @@ export const GAME_CORE_SCREEN_SHELL_VIEW_MODEL_SPECS = Object.freeze([
   }),
   Object.freeze({
     componentName: "ResultScreenShell",
-    topLevelViewModelKeys: Object.freeze(["toneClass", "badge", "headline", "lead", "closing", "focusSummary", "focusChips", "isClear", "actionLead", "nextSteps", "metricCards", "sectionTitle", "budgetLabel", "mainFactors", "secondaryTitle", "subFactors", "flowPreview", "budgetFocusItems", "eventHighlights", "outcomeSignals", "diagnosisPreview", "regions", "weakestInfra", "hasReport"]),
+    topLevelViewModelKeys: Object.freeze(["toneClass", "badge", "headline", "lead", "closing", "focusSummary", "focusChips", "isClear", "actionLead", "nextSteps", "metricCards", "sectionTitle", "budgetLabel", "mainFactors", "secondaryTitle", "subFactors", "flowPreview", "budgetFocusItems", "eventHighlights", "outcomeSignals", "diagnosisPreview", "regions", "weakestInfra", "hasReport", "gameOverContext"]),
   }),
   Object.freeze({
     componentName: "EventScreenShell",

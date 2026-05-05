@@ -369,6 +369,28 @@ export function createGameCoreDashboardReactApi(ctx) {
       staffItems: buildDashboardStaffItems(),
       monthLabel: gameState.phase === "monthly" ? MONTHS[gameState.monthIndex] : gameState.phase === "report" ? "年度末" : "年度準備",
       recentLog: (gameState.log || []).slice(0, 8),
+      infrastructures: gameState.infrastructures.map((item) => ({
+        id: item.id,
+        name: item.name,
+        kind: item.kind,
+        condition: item.condition,
+        importance: item.importance,
+        burden: item.burden,
+        area: item.area,
+        status: item.status,
+        operationStatus: item.operationStatus,
+      })),
+      selectedMapTargetId: gameState.selectedMapTargetId,
+      indicators: {
+        satisfaction: gameState.indicators.satisfaction,
+        safety: gameState.indicators.safety,
+        fiscalHealth: gameState.indicators.fiscalHealth,
+        futureBurden: gameState.indicators.futureBurden,
+        support: gameState.indicators.support,
+        rebellion: gameState.indicators.rebellion,
+        reserveFund: gameState.reserveFund,
+        remainingBudget: gameState.remainingBudget,
+      },
     };
   }
 
