@@ -19,7 +19,7 @@ export function createGameCoreTitleReactApi(ctx) {
       stats: [
         { title: "勝利条件", text: "10年間、町政を崩壊させずに持ちこたえる" },
         { title: "敗北条件", text: "満足度0 / 財政崩壊 / 重大事故 / 支持率0 / 反乱MAX" },
-        { title: "v4 React Web版", text: "大きな構造変更よりも、遊べる安定版としての仕上げを優先" },
+        { title: "v5 React Web版", text: "大きな構造変更よりも、遊べる安定版としての仕上げを優先" },
       ],
       startLabel: "ゲーム開始",
     };
