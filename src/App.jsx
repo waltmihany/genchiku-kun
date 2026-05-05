@@ -90,13 +90,18 @@ export default function App() {
     return "10年で町を持ちこたえさせる、地域別インフラ予算サバイバル";
   }, [auto.isRunning, auto.canStart]);
 
+  // ゲーム開始後（タイトル以外）のモバイルではタイトルと説明を隠してマップ領域を拡大
+  const compactHeader = isMobile && view.screen !== "title";
+
   return (
-    <div ref={hostRef} className="app-shell">
-      <header className="topbar">
-        <div>
-          <h1>減築くん v5</h1>
-          <p className="subtitle">{subtitle}</p>
-        </div>
+    <div ref={hostRef} className={`app-shell ${compactHeader ? "compact-header" : ""}`}>
+      <header className={`topbar ${compactHeader ? "is-compact" : ""}`}>
+        {!compactHeader && (
+          <div>
+            <h1>減築くん v5</h1>
+            <p className="subtitle">{subtitle}</p>
+          </div>
+        )}
         <div className="topbar-actions">
           {auto.canStart && (
             <button type="button" className="primary-btn" onClick={auto.start}>

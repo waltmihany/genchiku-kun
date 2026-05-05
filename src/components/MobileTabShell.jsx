@@ -104,12 +104,23 @@ function buildWarnedIds(bindings) {
 }
 
 function MapTab({ dashboardVM, bindings, onSelectMapTarget, reducedMotion, todayItems, nextHint, pulseIds }) {
+  // ポップアップを閉じた ID を記憶（runDashboardSelectMapTarget は null 不可のため、UI 側で隠す）
+  const [dismissedId, setDismissedId] = useState(null);
   if (!dashboardVM) return <p className="tab-empty">マップ情報を準備中です。</p>;
   const regions = dashboardVM.regions || [];
   const infrastructures = dashboardVM.infrastructures || [];
-  const selectedId = dashboardVM.selectedMapTargetId || dashboardVM.map?.inspector?.targetId;
+  const rawSelectedId = dashboardVM.selectedMapTargetId || dashboardVM.map?.inspector?.targetId;
+  // ユーザーが閉じた ID と一致したらポップアップを出さない
+  const selectedId = rawSelectedId === dismissedId ? null : rawSelectedId;
   const warnedIds = useMemo(() => buildWarnedIds(bindings), [bindings, dashboardVM]);
   const topDangerIds = useMemo(() => pickTopDangerIds(infrastructures, 3), [infrastructures]);
+
+  // 選択 ID が外部で変わったら dismiss 状態をリセット
+  useEffect(() => {
+    if (rawSelectedId && rawSelectedId !== dismissedId) {
+      setDismissedId(null);
+    }
+  }, [rawSelectedId, dismissedId]);
 
   const selectedInfra = infrastructures.find((i) => i.id === selectedId);
   const staffComments = useMemo(() => {
@@ -138,106 +149,99 @@ function MapTab({ dashboardVM, bindings, onSelectMapTarget, reducedMotion, today
         : "negative"
     : "neutral";
 
+  // ポップアップを閉じる：selectedMapTargetId を null にできないため、
+  // ローカルに dismissedId を保持して表示だけ隠す。
+  const handleClosePopup = () => {
+    if (rawSelectedId) setDismissedId(rawSelectedId);
+  };
+  // 地図要素タップで選択 ID が同じになってもポップアップを再表示したい
+  const handleSelect = (id) => {
+    setDismissedId(null);
+    onSelectMapTarget?.(id);
+  };
+
   return (
-    <div className="tab-pane">
-      <h3 className="tab-pane-title">自治体マップ</h3>
-      <TodayHighlights items={todayItems} />
+    <div className="tab-pane map-tab-pane">
+      {/* タイトルは画面節約のため非表示。SR向けに視覚非表示で残す。 */}
+      <h3 className="sr-only">自治体マップ</h3>
+
+      <TodayHighlights items={todayItems} variant="compact" />
       <NextActionHint hint={nextHint} />
 
-      <MapView
-        regions={regions}
-        infrastructures={infrastructures}
-        selectedId={selectedId}
-        onSelect={onSelectMapTarget}
-        warnedIds={warnedIds}
-        reducedMotion={reducedMotion}
-        pulseIds={pulseIds}
-        topDangerIds={topDangerIds}
-      />
+      <div className="map-stage">
+        <MapView
+          regions={regions}
+          infrastructures={infrastructures}
+          selectedId={selectedId}
+          onSelect={handleSelect}
+          warnedIds={warnedIds}
+          reducedMotion={reducedMotion}
+          pulseIds={pulseIds}
+          topDangerIds={topDangerIds}
+          enablePan={true}
+          onEmptyTap={handleClosePopup}
+        />
 
-      {detail ? (
-        <div className="mv-detail-card">
-          <div className="mv-detail-head">
-            <div>
-              <strong>{detail.name}</strong>
-              <div className="mv-detail-sub">{detail.kind} ・ {detail.areaName}</div>
-            </div>
-            <span className={`risk-badge tone-${detailBadgeTone}`}>{detail.statusLabel}</span>
-          </div>
-          {oneLiner && <p className="mv-detail-oneliner">{oneLiner}</p>}
-          <div className="mv-detail-meta-rich">
-            <div className="mv-detail-meta-cell">
-              <div className="mv-detail-meta-cell-label">老朽度</div>
-              <ValueWithMeaning value={100 - detail.condition} info={condInfo} />
-            </div>
-            <div className="mv-detail-meta-cell">
-              <div className="mv-detail-meta-cell-label">利用状況</div>
-              <div className="value-with-meaning">
-                <div className="value-with-meaning-row">
-                  <span className="value-with-meaning-num">{detail.importance}</span>
-                  <span className={`value-with-meaning-state tone-${detail.importance >= 70 ? "negative" : detail.importance >= 50 ? "warning" : "neutral"}`}>
-                    {detail.importance >= 70 ? "重要" : detail.importance >= 50 ? "中" : "低"}
-                  </span>
-                </div>
-                <span className="value-with-meaning-meaning">
-                  {detail.importance >= 70 ? "止めると影響が大きい" : detail.importance >= 50 ? "代替がある程度ある" : "整理対象になりやすい"}
-                </span>
+        {detail && (
+          <div
+            className="mv-detail-popup"
+            role="dialog"
+            aria-label={`${detail.name}の詳細`}
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="mv-detail-popup-close"
+              onClick={handleClosePopup}
+              aria-label="閉じる"
+            >
+              ✕
+            </button>
+            <div className="mv-detail-head">
+              <div>
+                <strong>{detail.name}</strong>
+                <div className="mv-detail-sub">{detail.kind} ・ {detail.areaName}</div>
               </div>
+              <span className={`risk-badge tone-${detailBadgeTone}`}>{detail.statusLabel}</span>
             </div>
-            <div className="mv-detail-meta-cell">
-              <div className="mv-detail-meta-cell-label">将来維持負担</div>
-              <div className="value-with-meaning">
-                <div className="value-with-meaning-row">
-                  <span className="value-with-meaning-num">{detail.burden}</span>
-                  <span className={`value-with-meaning-state tone-${detail.burden >= 16 ? "negative" : detail.burden >= 12 ? "warning" : "positive"}`}>
-                    {detail.burden >= 16 ? "重い" : detail.burden >= 12 ? "並" : "軽い"}
-                  </span>
-                </div>
-                <span className="value-with-meaning-meaning">
-                  {detail.burden >= 16 ? "毎年の維持費が大きい" : detail.burden >= 12 ? "計画的に維持できる" : "ほぼ問題なし"}
-                </span>
-              </div>
-            </div>
-            {detail.region && (
+            {oneLiner && <p className="mv-detail-oneliner">{oneLiner}</p>}
+            <div className="mv-detail-meta-rich compact">
               <div className="mv-detail-meta-cell">
-                <div className="mv-detail-meta-cell-label">地区の反乱</div>
-                <ValueWithMeaning value={detail.region.rebellion} info={describeRebellion(detail.region.rebellion)} />
+                <div className="mv-detail-meta-cell-label">老朽度</div>
+                <ValueWithMeaning value={100 - detail.condition} info={condInfo} />
               </div>
+              <div className="mv-detail-meta-cell">
+                <div className="mv-detail-meta-cell-label">将来負担</div>
+                <div className="value-with-meaning">
+                  <div className="value-with-meaning-row">
+                    <span className="value-with-meaning-num">{detail.burden}</span>
+                    <span className={`value-with-meaning-state tone-${detail.burden >= 16 ? "negative" : detail.burden >= 12 ? "warning" : "positive"}`}>
+                      {detail.burden >= 16 ? "重い" : detail.burden >= 12 ? "並" : "軽い"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {detail.staffComment && (
+              <p className="mv-detail-staff-line">担当: {detail.staffComment}</p>
+            )}
+            {readingHint && <p className="mv-detail-hint">{readingHint}</p>}
+            {detail.project && detail.project.statusLabel && (
+              <p className="mv-detail-staff-line">減築: {detail.project.statusLabel}（{detail.project.progress}%）</p>
             )}
           </div>
-          {detail.staffComment && (
-            <div className="mv-detail-staff">
-              <strong>担当者: </strong>{detail.staffComment}
-            </div>
-          )}
-          {readingHint && <p className="mv-detail-hint">{readingHint}</p>}
-          {detail.project && detail.project.statusLabel && (
-            <div className="mv-detail-staff">
-              <strong>減築: </strong>{detail.project.statusLabel}（{detail.project.progress}%）
-            </div>
-          )}
-        </div>
-      ) : (
-        <p className="mv-detail-card-empty">気になる橋・道路をタップしてください。</p>
-      )}
+        )}
+      </div>
 
-      <h4 className="map-tab-sub-title">地区の状態</h4>
-      <div className="region-grid-mobile">
+      <div className="region-strip-mobile">
         {regions.map((region) => {
           const tone = regionRiskTone(region);
-          const satInfo = describeSatisfaction(region.satisfaction);
-          const rebInfo = describeRebellion(region.rebellion);
           return (
-            <div key={region.id} className={`region-card-mobile tone-${tone}`}>
-              <div className="region-card-head">
-                <strong>{region.name}</strong>
-                <span className={`risk-badge tone-${tone}`}>{regionRiskLabel(tone)}</span>
-              </div>
-              <div className="region-card-stats">
-                <div>満足 {region.satisfaction}（{satInfo.label}）</div>
-                <div>反乱 {region.rebellion}（{rebInfo.label}）</div>
-              </div>
-              {region.note && <p className="region-card-note">{region.note}</p>}
+            <div key={region.id} className={`region-strip-item tone-${tone}`}>
+              <span className="region-strip-name">{region.name}</span>
+              <span className={`risk-badge tone-${tone}`}>{regionRiskLabel(tone)}</span>
+              <span className="region-strip-mood">満{region.satisfaction}/反{region.rebellion}</span>
             </div>
           );
         })}

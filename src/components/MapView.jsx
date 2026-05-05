@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { mapData } from "../data/mapData.js";
 
 /**
@@ -14,6 +14,10 @@ import { mapData } from "../data/mapData.js";
 
 const VIEWBOX_W = 540;
 const VIEWBOX_H = 360;
+
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
 
 function statusToTone(infra) {
   if (!infra) return "neutral";
@@ -87,10 +91,92 @@ export function MapView({
   reducedMotion = false,
   pulseIds = [],
   topDangerIds = [],
+  enablePan = false,
+  onEmptyTap,
 }) {
   const warnSet = useMemo(() => new Set(warnedIds), [warnedIds]);
   const pulseSet = useMemo(() => new Set(pulseIds), [pulseIds]);
   const topSet = useMemo(() => new Set(topDangerIds), [topDangerIds]);
+
+  // パン用 state / ref
+  const stageRef = useRef(null);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const panState = useRef({
+    active: false,
+    startX: 0,
+    startY: 0,
+    baseX: 0,
+    baseY: 0,
+    moved: 0,
+    decided: null, // "pan" | "swipe" | null
+  });
+  // タップとパンを区別するため、移動量がこれ以上なら click を抑制
+  const TAP_THRESHOLD_PX = 6;
+
+  const onPointerDown = useCallback((e) => {
+    if (!enablePan) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    panState.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      baseX: pan.x,
+      baseY: pan.y,
+      moved: 0,
+      decided: null,
+    };
+  }, [enablePan, pan.x, pan.y]);
+
+  const onPointerMove = useCallback((e) => {
+    if (!enablePan) return;
+    const s = panState.current;
+    if (!s.active) return;
+    const dx = e.clientX - s.startX;
+    const dy = e.clientY - s.startY;
+    const adx = Math.abs(dx);
+    const ady = Math.abs(dy);
+    s.moved = Math.max(s.moved, Math.max(adx, ady));
+
+    // 初期方向判定：横で、下層スワイプより明確に横優位ならタブスワイプに譲る
+    if (s.decided === null && (adx > 8 || ady > 8)) {
+      // マップ内では「縦、または横でもやや控えめ」ときは pan、「わかりやすく横」のときはswipeに譲る
+      if (adx > ady * 1.4 && adx > 24) {
+        s.decided = "swipe";
+        s.active = false; // タブ側に任せる
+        return;
+      }
+      s.decided = "pan";
+    }
+    if (s.decided !== "pan") return;
+
+    e.preventDefault?.();
+    const nx = clamp(s.baseX + dx, -120, 120);
+    const ny = clamp(s.baseY + dy, -80, 80);
+    setPan({ x: nx, y: ny });
+  }, [enablePan]);
+
+  const onPointerUp = useCallback((e) => {
+    if (!enablePan) return;
+    const s = panState.current;
+    if (!s.active && s.decided !== "pan") {
+      s.active = false;
+      s.decided = null;
+      return;
+    }
+    s.active = false;
+  }, [enablePan]);
+
+  // 空タップ・背景タップで選択解除
+  const onStageClick = useCallback((e) => {
+    if (!onEmptyTap) return;
+    // 移動量が大きいとタップとみなさない
+    if (panState.current.moved > TAP_THRESHOLD_PX) return;
+    // ボタン要素上のクリックは除外
+    const tag = e.target?.tagName?.toLowerCase?.();
+    const isInteractive = e.target?.closest?.("button, .mv-facility, .mv-detail-popup");
+    if (isInteractive) return;
+    onEmptyTap();
+  }, [onEmptyTap]);
 
   const infraById = useMemo(() => {
     const m = new Map();
@@ -119,8 +205,26 @@ export function MapView({
   const aspect = `${VIEWBOX_W}/${VIEWBOX_H}`;
 
   return (
-    <div className="map-view" style={{ aspectRatio: aspect }} role="img" aria-label="自治体マップ">
-      <div className="map-view-inner" style={{ width: VIEWBOX_W, height: VIEWBOX_H }}>
+    <div
+      className={`map-view ${enablePan ? "is-pannable" : ""}`}
+      style={{ aspectRatio: aspect }}
+      role="img"
+      aria-label="自治体マップ"
+      ref={stageRef}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onClick={onStageClick}
+    >
+      <div
+        className="map-view-inner"
+        style={{
+          width: VIEWBOX_W,
+          height: VIEWBOX_H,
+          transform: enablePan ? `translate(${pan.x}px, ${pan.y}px)` : undefined,
+        }}
+      >
         {/* 地区 */}
         {mapData.areas.map((area) => {
           const region = regionById.get(area.id);
