@@ -113,7 +113,7 @@ export default function App() {
       </header>
 
       <main className="screen-stage">
-        {isMobile && (view.screen === "dashboard" || view.screen === "title") ? (
+        {isMobile && view.screen === "dashboard" ? (
           <MobileTabShell
             view={view}
             bindings={gameCoreReactBindings}
