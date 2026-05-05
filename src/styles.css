@@ -3876,3 +3876,524 @@ button:disabled {
   animation-play-state: paused;
 }
 
+
+
+/* === v5.5: Government simulation worldview === */
+
+/* --- \u30d8\u30c3\u30c0\u3092\u30d7\u30ec\u30a4\u4e2d\u306f\u6975\u9650\u307e\u3067\u8efd\u304f\u3059\u308b --- */
+@media (max-width: 760px) {
+  .topbar.is-compact {
+    background: linear-gradient(180deg, #f3ede1 0%, #ece4d2 100%);
+    border-bottom: 1px solid #cbbfa6;
+    box-shadow: 0 1px 0 rgba(120, 100, 70, 0.05);
+    padding: 4px 10px;
+    min-height: 36px;
+  }
+  .topbar.is-compact .topbar-brand {
+    font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+    font-size: 0.82rem;
+    color: #6f5d3f;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+  }
+  .topbar.is-compact .topbar-status-pill {
+    background: #d8e4cf;
+    color: #496942;
+    border: 1px solid #afc8a3;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    animation: gov-status-pulse 2.4s ease-in-out infinite;
+  }
+}
+@keyframes gov-status-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(73, 105, 66, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(73, 105, 66, 0.18); }
+}
+
+/* --- \u30b9\u30de\u30db\u6a2a\u5e45\u3092\u3082\u3063\u3068\u4f7f\u3046 --- */
+@media (max-width: 760px) {
+  .app-shell {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+  .screen-stage {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+  .mobile-tab-shell {
+    width: 100%;
+    max-width: 100%;
+  }
+  .mobile-tab-content {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+  .tab-pane {
+    padding: 10px 10px 80px;
+    width: 100%;
+    max-width: none;
+  }
+  .map-tab-pane {
+    padding: 6px 6px 80px;
+  }
+  .map-tab-pane .map-view {
+    width: calc(100% + 0px);
+    border-radius: 10px;
+  }
+  /* \u30ab\u30fc\u30c9\u7cfb\u306f\u6a2a\u3044\u3063\u3071\u3044\u306b\u8fd1\u3065\u3051\u308b */
+  .finance-card-grid,
+  .staff-card-grid,
+  .region-strip-mobile {
+    width: 100%;
+  }
+}
+
+/* --- \u30de\u30c3\u30d7\u30bf\u30d6\uff1a\u571f\u6728\u7ba1\u7406\u30dc\u30fc\u30c9\u98a8 --- */
+.map-board-eyebrow {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  color: #6b5f48;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(170, 150, 110, 0.0) 0 6px,
+    rgba(170, 150, 110, 0.18) 6px 7px
+  );
+  padding: 4px 10px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+.map-tab-pane .map-view {
+  background:
+    linear-gradient(180deg, rgba(247, 241, 230, 0.9), rgba(238, 228, 210, 0.9)),
+    repeating-linear-gradient(0deg, rgba(140, 120, 90, 0.05) 0 24px, transparent 24px 25px),
+    repeating-linear-gradient(90deg, rgba(140, 120, 90, 0.05) 0 24px, transparent 24px 25px);
+  border: 1px solid #c2b394;
+  box-shadow:
+    inset 0 0 0 6px rgba(255, 250, 240, 0.5),
+    inset 0 0 0 7px rgba(140, 120, 90, 0.3),
+    0 4px 14px rgba(80, 60, 30, 0.1);
+}
+
+/* \u30dd\u30c3\u30d7\u30a2\u30c3\u30d7\u3092\u5e81\u5185\u30e1\u30e2\u98a8\u306b */
+.mv-detail-popup {
+  background:
+    linear-gradient(180deg, #fffdf6 0%, #fbf5e7 100%);
+  border: 1px solid #c8b48a;
+  border-left: 4px solid #6b8d6f;
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+}
+.mv-detail-popup strong {
+  color: #3d4a3d;
+}
+.mv-detail-popup::before {
+  content: "\u73fe\u5834\u30e1\u30e2";
+  position: absolute;
+  top: -10px;
+  left: 12px;
+  background: #6b8d6f;
+  color: #fffdf6;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+}
+
+/* --- \u305d\u306e\u4ed6\u30bf\u30d6\uff1a\u5e81\u820e\u30fb\u884c\u653f\u30dc\u30fc\u30c9\u98a8 --- */
+.tab-pane:not(.map-tab-pane) {
+  background:
+    linear-gradient(180deg, #faf6ec 0%, #f4eedc 100%);
+}
+
+.office-heading {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  font-size: 1.05rem;
+  color: #3a3528;
+  border-bottom: 2px solid #c4ad7a;
+  padding-bottom: 6px;
+  margin: 6px 0 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.office-heading-eyebrow {
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  background: #3a3528;
+  color: #f3e9c8;
+  padding: 3px 9px;
+  border-radius: 2px;
+  font-family: "Noto Sans JP", sans-serif;
+  font-weight: 700;
+}
+.office-heading-eyebrow.alarm {
+  background: #8a3a2f;
+  color: #fff;
+  animation: gov-status-pulse 1.6s ease-in-out infinite;
+}
+
+.office-callout {
+  background:
+    linear-gradient(180deg, #fffdf3 0%, #fbf3dc 100%);
+  border: 1px solid #d8c598;
+  border-left: 4px solid #4d6a4d;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  color: #3d3a2c;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+.office-body {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  line-height: 1.7;
+  color: #3d3a2c;
+  background: #fffdf6;
+  border: 1px solid #d8c598;
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+
+/* \u5831\u544a\u66f8\u30fb\u53f0\u5e33\u98a8\u30d1\u30cd\u30eb */
+.report-panel {
+  position: relative;
+  background:
+    linear-gradient(180deg, #fffdf3 0%, #faf2dc 100%);
+  border: 1px solid #c8b48a;
+  border-radius: 6px;
+  padding: 14px 14px 12px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 253, 243, 0.7),
+    0 1px 0 rgba(120, 100, 60, 0.06),
+    0 4px 12px rgba(80, 60, 20, 0.06);
+}
+.report-panel-band {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #4d6a4d;
+  color: #fffdf6;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  padding: 2px 10px;
+  border-bottom-right-radius: 6px;
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+}
+.staff-card.report-panel,
+.fiscal-headline.report-panel,
+.year-status-card.report-panel {
+  padding-top: 22px;
+}
+
+/* \u62c5\u5f53\u8005\u306e\u300c\u3001\u300d\u3067\u56f2\u3093\u3060\u4e00\u8a00 */
+.quote-line {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  background:
+    linear-gradient(180deg, #fffdf6 0%, #fdf5dc 100%);
+  border-left: 3px solid #6b8d6f;
+  padding: 8px 12px;
+  margin: 8px 0 6px;
+  color: #38362b;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  border-radius: 0 4px 4px 0;
+}
+.staff-card.tone-negative .quote-line {
+  border-left-color: #8a3a2f;
+}
+.staff-card.tone-warning .quote-line {
+  border-left-color: #b07d2a;
+}
+.staff-card.tone-positive .quote-line {
+  border-left-color: #4d6a4d;
+}
+
+/* \u8ca1\u653f\u8a3a\u65ad */
+.fiscal-headline.report-panel .fiscal-label {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  color: #6b5f48;
+}
+.fiscal-headline.report-panel strong {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  letter-spacing: 0.06em;
+  color: #38362b;
+}
+
+/* \u5e74\u5ea6\u8a18\u9332\u3092\u5e81\u5185\u30ce\u30fc\u30c8\u98a8\u306b */
+.year-log-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background:
+    linear-gradient(180deg, #fffdf3 0%, #fbf5e1 100%);
+  border: 1px solid #d8c598;
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+}
+.year-log-list li {
+  padding: 8px 12px 8px 28px;
+  border-bottom: 1px dashed rgba(120, 100, 60, 0.2);
+  font-size: 0.84rem;
+  color: #38362b;
+  position: relative;
+  background-image: linear-gradient(90deg, transparent 16px, rgba(120, 100, 60, 0.08) 16px, rgba(120, 100, 60, 0.08) 17px, transparent 17px);
+}
+.year-log-list li::before {
+  content: "\u30fb";
+  position: absolute;
+  left: 16px;
+  color: #6b5f48;
+}
+.year-log-list li:last-child {
+  border-bottom: 0;
+}
+.year-log-list li.muted {
+  color: #8a8169;
+  font-style: italic;
+}
+.year-log-title {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  color: #6b5f48;
+  margin: 18px 0 6px;
+  border-bottom: 1px solid #c4ad7a;
+  padding-bottom: 4px;
+}
+
+/* --- \u5224\u65ad\u30dc\u30bf\u30f3\uff08\u30a4\u30d9\u30f3\u30c8\u9078\u629e\u80a2\uff09 --- */
+.event-decision-lead {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  color: #3d3a2c;
+  font-size: 0.95rem;
+  margin: 12px 0 6px;
+  letter-spacing: 0.04em;
+}
+.event-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.judgment-btn {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background:
+    linear-gradient(180deg, #fffdf3 0%, #f7eed4 100%);
+  border: 1px solid #c8b48a;
+  border-left: 4px solid #6b5f48;
+  border-radius: 6px;
+  padding: 14px 14px 12px;
+  cursor: pointer;
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  color: #38362b;
+  transition: transform 0.08s ease, box-shadow 0.18s ease, background 0.18s ease;
+  box-shadow: 0 2px 0 rgba(120, 100, 60, 0.15), 0 4px 12px rgba(80, 60, 20, 0.05);
+}
+.judgment-btn:hover {
+  background:
+    linear-gradient(180deg, #fffefa 0%, #f9f0d8 100%);
+}
+.judgment-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(120, 100, 60, 0.15), 0 2px 6px rgba(80, 60, 20, 0.05);
+}
+.judgment-btn.recommended {
+  border-left-color: #4d6a4d;
+  background:
+    linear-gradient(180deg, #fbfdf3 0%, #f0f4d8 100%);
+}
+.judgment-stamp {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #fff;
+  color: #4d6a4d;
+  border: 1.5px solid #4d6a4d;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+  transform: rotate(2deg);
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+}
+.judgment-title {
+  display: block;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: #2f3624;
+  margin-bottom: 6px;
+}
+.judgment-desc {
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: #4d4839;
+  margin-bottom: 8px;
+}
+.judgment-forecast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: rgba(255, 253, 243, 0.7);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px dashed #c8b48a;
+}
+.judgment-forecast-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: #6b5f48;
+}
+.judgment-btn .choice-risk {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.74rem;
+  color: #8a3a2f;
+  font-style: italic;
+}
+
+/* --- \u30a4\u30d9\u30f3\u30c8\u30a4\u30d9\u30f3\u30c8\u8b66\u544a\u80cc\u666f --- */
+.event-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #fdf3ee;
+  border: 1px solid #e7c5b8;
+  border-radius: 4px;
+  margin: 6px 0 10px;
+}
+
+/* --- \u30dc\u30bf\u30f3\u306e\u4e00\u822c\u53cd\u5fdc --- */
+.primary-btn,
+.ghost-btn {
+  transition: transform 0.08s ease, box-shadow 0.18s ease;
+}
+.primary-btn:active,
+.ghost-btn:active {
+  transform: translateY(1px);
+}
+.primary-btn.weighty {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  letter-spacing: 0.12em;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #5a7a55 0%, #43603e 100%);
+  color: #fdf6df;
+  border: 1px solid #2f3e29;
+  box-shadow: 0 2px 0 rgba(40, 50, 30, 0.4), inset 0 1px 0 rgba(255, 253, 240, 0.18);
+  padding: 10px 16px;
+}
+.primary-btn.weighty:active {
+  box-shadow: 0 1px 0 rgba(40, 50, 30, 0.4), inset 0 1px 0 rgba(255, 253, 240, 0.18);
+}
+.ghost-btn.danger {
+  border-color: #8a3a2f;
+  color: #8a3a2f;
+  background: #fff;
+}
+.ghost-btn.danger:active {
+  background: #fdf3ef;
+}
+
+/* --- \u300c\u3084\u308a\u76f4\u3057\u300d\u9818\u57df --- */
+.danger-zone {
+  margin-top: 24px;
+  border: 1px dashed #c4a399;
+  border-radius: 4px;
+  background: #fffaf6;
+  padding: 8px 12px;
+}
+.danger-zone summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: #8a3a2f;
+  letter-spacing: 0.06em;
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+}
+.danger-zone[open] summary {
+  margin-bottom: 8px;
+}
+.danger-zone-note {
+  font-size: 0.78rem;
+  color: #6f5d3f;
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+
+/* --- \u30bf\u30d6\u30d0\u30fc\u3092\u5e81\u5185\u5165\u308a\u53e3\u98a8\u306b --- */
+.mobile-tab-bar {
+  background:
+    linear-gradient(180deg, #f3ede1 0%, #e8dec6 100%);
+  border-top: 1px solid #c4ad7a;
+  box-shadow: 0 -2px 8px rgba(80, 60, 20, 0.06);
+}
+.mobile-tab-btn {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  letter-spacing: 0.06em;
+  color: #6b5f48;
+}
+.mobile-tab-btn.active {
+  color: #2f3e29;
+}
+.mobile-tab-btn.active::after {
+  background: #4d6a4d;
+}
+
+/* --- \u5730\u533a\u30b9\u30c8\u30ea\u30c3\u30d7\u3092\u5730\u56f3\u8a18\u53f7\u98a8\u306b --- */
+.region-strip-item {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+}
+.region-strip-name::before {
+  content: "\u25c8 ";
+  color: #6b5f48;
+  font-size: 0.72rem;
+}
+
+/* --- \u4eca\u65e5\u898b\u308b\u3079\u304d\u3053\u3068\u3092\u5e81\u5185\u30e1\u30e2\u98a8\u306b --- */
+.today-highlights {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+}
+.today-highlights summary {
+  letter-spacing: 0.08em;
+}
+
+/* --- \u5e74\u5ea6\u9032\u884c\u30a2\u30cb\u30e1\u30fc\u30b7\u30e7\u30f3\uff1a\u5e81\u5185\u30ce\u30fc\u30c8\u30b9\u30e9\u30a4\u30c9 --- */
+.year-log-list li {
+  animation: gov-note-fade 0.36s ease-out both;
+}
+@keyframes gov-note-fade {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- \u30bf\u30d6\u30da\u30a4\u30f3\u5207\u308a\u66ff\u3048\u30d5\u30a7\u30fc\u30c9 --- */
+.mobile-tab-content {
+  animation: gov-pane-fade 0.22s ease-out both;
+}
+@keyframes gov-pane-fade {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- \u8eab\u4f53\u306b\u3084\u3055\u3057\u304f\u3001\u30d5\u30a9\u30f3\u30c8\u3092\u660e\u671d\u4f53\u5bc4\u308a --- */
+.app-shell {
+  font-family: "Noto Sans JP", -apple-system, "Hiragino Sans", sans-serif;
+}
+.tab-pane {
+  font-family: "Noto Sans JP", -apple-system, "Hiragino Sans", sans-serif;
+}
+

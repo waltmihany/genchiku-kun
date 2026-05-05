@@ -90,31 +90,43 @@ export default function App() {
     return "10年で町を持ちこたえさせる、地域別インフラ予算サバイバル";
   }, [auto.isRunning, auto.canStart]);
 
-  // ゲーム開始後（タイトル以外）のモバイルではタイトルと説明を隠してマップ領域を拡大
+  // ゲーム開始後（タイトル以外）のモバイルではヘッダを極限まで圧縮してマップ領域を拡大
   const compactHeader = isMobile && view.screen !== "title";
+  const onTitle = view.screen === "title";
+
+  // 「はじめから」確認ダイアログ
+  const handleRestartConfirm = () => {
+    if (typeof window !== "undefined") {
+      const ok = window.confirm("ここまでの進行状況を破棄して初期化します。よろしいですか？");
+      if (!ok) return;
+    }
+    runtimeBindings.topbarActionProps.onRestart();
+  };
 
   return (
     <div ref={hostRef} className={`app-shell ${compactHeader ? "compact-header" : ""}`}>
       <header className={`topbar ${compactHeader ? "is-compact" : ""}`}>
-        {!compactHeader && (
-          <div>
-            <h1>減築くん v5</h1>
-            <p className="subtitle">{subtitle}</p>
-          </div>
+        {onTitle ? (
+          <>
+            <div>
+              <h1>減築くん v5</h1>
+              <p className="subtitle">{subtitle}</p>
+            </div>
+            <div className="topbar-actions">
+              <button id="restartTopBtn" className="ghost-btn" onClick={handleRestartConfirm}>はじめから</button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* プレイ中はロゴを軽く表示し、操作ボタンはタブ側へ移動 */}
+            <div className="topbar-brand" aria-label="減築くん v5">減築くん</div>
+            <div className="topbar-actions">
+              {auto.isRunning && (
+                <span className="topbar-status-pill" aria-live="polite">進行中</span>
+              )}
+            </div>
+          </>
         )}
-        <div className="topbar-actions">
-          {auto.canStart && (
-            <button type="button" className="primary-btn" onClick={auto.start}>
-              年度を開始
-            </button>
-          )}
-          {auto.isRunning && (
-            <button type="button" className="ghost-btn" onClick={auto.stop}>
-              一時停止
-            </button>
-          )}
-          <button id="restartTopBtn" className="ghost-btn" onClick={runtimeBindings.topbarActionProps.onRestart}>はじめから</button>
-        </div>
       </header>
 
       <main className="screen-stage">
@@ -123,6 +135,7 @@ export default function App() {
             view={view}
             bindings={gameCoreReactBindings}
             auto={auto}
+            onRestart={handleRestartConfirm}
           />
         ) : (
           <>

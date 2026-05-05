@@ -17,11 +17,11 @@ import {
 } from "./humanizeHelpers.js";
 
 const TABS = [
-  { key: "map", label: "マップ", icon: "🗺" },
-  { key: "finance", label: "財政", icon: "💴" },
-  { key: "staff", label: "担当者", icon: "👥" },
-  { key: "event", label: "イベント", icon: "⚠" },
-  { key: "year", label: "年度", icon: "📅" },
+  { key: "map", label: "町を見る", icon: "🗺" },
+  { key: "finance", label: "財政課", icon: "💴" },
+  { key: "staff", label: "庁内会議", icon: "👥" },
+  { key: "event", label: "緊急対応", icon: "⚠" },
+  { key: "year", label: "年度記録", icon: "📅" },
 ];
 
 function regionRiskTone(area) {
@@ -163,7 +163,8 @@ function MapTab({ dashboardVM, bindings, onSelectMapTarget, reducedMotion, today
   return (
     <div className="tab-pane map-tab-pane">
       {/* タイトルは画面節約のため非表示。SR向けに視覚非表示で残す。 */}
-      <h3 className="sr-only">自治体マップ</h3>
+      <h3 className="sr-only">町の状況図</h3>
+      <div className="map-board-eyebrow" aria-hidden="true">町の状況図 ・ 土木管理ボード</div>
 
       <TodayHighlights items={todayItems} variant="compact" />
       <NextActionHint hint={nextHint} />
@@ -274,13 +275,13 @@ function FinanceTab({ dashboardVM, todayItems, nextHint, todayVariant = "collaps
 
   return (
     <div className="tab-pane">
-      <h3 className="tab-pane-title">財政状況</h3>
+      <h3 className="tab-pane-title office-heading"><span className="office-heading-eyebrow">庁内資料</span>財政課の診断</h3>
       <TodayHighlights items={todayItems} variant={todayVariant} />
       <NextActionHint hint={nextHint} />
 
       {fiscalInfo && (
-        <div className={`fiscal-headline tone-${fiscalInfo.tone}`}>
-          <span className="fiscal-label">財政状態</span>
+        <div className={`fiscal-headline report-panel tone-${fiscalInfo.tone}`}>
+          <span className="fiscal-label">財政課の見立て</span>
           <strong>{fiscalInfo.label}</strong>
         </div>
       )}
@@ -349,15 +350,16 @@ function StaffTab({ dashboardVM, todayItems, nextHint, todayVariant = "collapsed
 
   return (
     <div className="tab-pane">
-      <h3 className="tab-pane-title">担当者の意見</h3>
+      <h3 className="tab-pane-title office-heading"><span className="office-heading-eyebrow">庁内会議</span>担当者からの報告</h3>
       <TodayHighlights items={todayItems} variant={todayVariant} />
       <NextActionHint hint={nextHint} />
 
-      <p className="staff-priority-summary">{summary}</p>
+      <p className="staff-priority-summary office-callout">「{summary}」</p>
 
       <div className="staff-card-grid">
         {prioritized.map((item) => (
-          <div key={item.key} className={`staff-card tone-${item.tone || "neutral"}`}>
+          <div key={item.key} className={`staff-card report-panel tone-${item.tone || "neutral"}`}>
+            <div className="report-panel-band">{item.role}</div>
             <div className="staff-card-head">
               <span className="staff-avatar" aria-hidden="true">{item.avatar || "👤"}</span>
               <div>
@@ -365,9 +367,9 @@ function StaffTab({ dashboardVM, todayItems, nextHint, todayVariant = "collapsed
                 <span className="staff-role">{item.role}</span>
               </div>
             </div>
-            <p className="staff-comment">{item.comment}</p>
+            <p className="staff-comment quote-line">「{item.comment}」</p>
             {item.priorityReason && <p className="staff-priority-reason">{item.priorityReason}</p>}
-            {item.warning && <p className="staff-warning">警戒: {item.warning}</p>}
+            {item.warning && <p className="staff-warning">・警戒：{item.warning}</p>}
           </div>
         ))}
       </div>
@@ -380,38 +382,43 @@ function EventTab({ view, bindings, onChoose, todayItems, nextHint, todayVariant
   if (!eventVM) {
     return (
       <div className="tab-pane">
-        <h3 className="tab-pane-title">未対応のイベント</h3>
+        <h3 className="tab-pane-title office-heading"><span className="office-heading-eyebrow">緊急対応室</span>出動案件はありません</h3>
         <TodayHighlights items={todayItems} variant={todayVariant} />
         <NextActionHint hint={nextHint} />
-        <p className="tab-empty">現在、対応待ちのイベントはありません。年度を進めると必要なときに通知されます。</p>
+        <p className="tab-empty">今のところ出動案件はありません。年度を進めると、必要に応じて現場から連絡が入ります。</p>
       </div>
     );
   }
   return (
     <div className="tab-pane">
-      <h3 className="tab-pane-title">{eventVM.title}</h3>
-      <p className="event-body">{eventVM.body}</p>
+      <h3 className="tab-pane-title office-heading"><span className="office-heading-eyebrow alarm">緊急対応案件</span>{eventVM.title}</h3>
+      <p className="event-body office-body">{eventVM.body}</p>
       <div className="event-meta-row">
         {eventVM.metaChips?.map((chip, idx) => (
           <span key={idx} className={`inline-chip tone-${chip.tone || "neutral"}`}>{chip.label}</span>
         ))}
       </div>
+      <p className="event-decision-lead">さて、どう判断しますか。</p>
       <div className="event-choice-list">
         {eventVM.choices?.map((choice) => (
           <button
             key={choice.index}
             type="button"
-            className={`choice-btn ${choice.recommended ? "recommended" : ""}`}
+            className={`choice-btn judgment-btn ${choice.recommended ? "recommended" : ""}`}
             onClick={() => onChoose?.(choice.index)}
           >
-            <strong>{choice.label}</strong>
-            <div className="choice-preview">{choice.previewText}</div>
-            <div className="choice-chips">
-              {choice.effectChips?.slice(0, 3).map((chip, idx) => (
-                <span key={idx} className={`inline-chip tone-${chip.tone}`}>{chip.label}</span>
-              ))}
+            {choice.recommended && <span className="judgment-stamp">担当推奨</span>}
+            <strong className="judgment-title">{choice.label}</strong>
+            <div className="judgment-desc">{choice.previewText}</div>
+            <div className="judgment-forecast">
+              <span className="judgment-forecast-label">見込み</span>
+              <div className="choice-chips">
+                {choice.effectChips?.slice(0, 3).map((chip, idx) => (
+                  <span key={idx} className={`inline-chip tone-${chip.tone}`}>{chip.label}</span>
+                ))}
+              </div>
             </div>
-            <small className="choice-risk">{choice.riskLabel}（見込み）</small>
+            {choice.riskLabel && <small className="choice-risk">{choice.riskLabel}</small>}
           </button>
         ))}
       </div>
@@ -419,15 +426,17 @@ function EventTab({ view, bindings, onChoose, todayItems, nextHint, todayVariant
   );
 }
 
-function YearTab({ view, dashboardVM, auto, onOpenReport, onOpenBudget, todayItems, nextHint, todayVariant = "collapsed" }) {
+function YearTab({ view, dashboardVM, auto, onOpenReport, onOpenBudget, onRestart, todayItems, nextHint, todayVariant = "collapsed" }) {
   const log = dashboardVM?.recentLog || [];
+  const [showDanger, setShowDanger] = useState(false);
   return (
     <div className="tab-pane">
-      <h3 className="tab-pane-title">年度の進行</h3>
+      <h3 className="tab-pane-title">年度記録</h3>
       <TodayHighlights items={todayItems} variant={todayVariant} />
       <NextActionHint hint={nextHint} />
 
-      <div className="year-status-card">
+      <div className="year-status-card report-panel">
+        <div className="report-panel-band">進行状況</div>
         <div className="year-status-row">
           <span>現在</span>
           <strong>{view.year}年目 {dashboardVM?.monthLabel || ""}</strong>
@@ -438,26 +447,39 @@ function YearTab({ view, dashboardVM, auto, onOpenReport, onOpenBudget, todayIte
         </div>
         <div className="year-actions">
           {auto.canStart && (
-            <button type="button" className="primary-btn" onClick={auto.start}>年度を開始</button>
+            <button type="button" className="primary-btn weighty" onClick={auto.start}>年度を開始する</button>
           )}
           {auto.isRunning && (
-            <button type="button" className="ghost-btn" onClick={auto.stop}>一時停止</button>
+            <button type="button" className="ghost-btn" onClick={auto.stop}>進行を一時停止</button>
           )}
           {view.phase === "report" && (
-            <button type="button" className="primary-btn" onClick={onOpenReport}>年度末レポートを見る</button>
+            <button type="button" className="primary-btn weighty" onClick={onOpenReport}>年度末レポートを見る</button>
           )}
           {view.phase === "budget" && (
-            <button type="button" className="primary-btn" onClick={onOpenBudget}>予算配分を開く</button>
+            <button type="button" className="primary-btn weighty" onClick={onOpenBudget}>予算配分を開く</button>
           )}
         </div>
       </div>
-      <h4 className="year-log-title">主な出来事</h4>
+      <h4 className="year-log-title">町の出来事記録</h4>
       <ul className="year-log-list">
         {log.slice(0, 8).map((line, idx) => (
           <li key={idx}>{line}</li>
         ))}
         {log.length === 0 && <li className="muted">まだ大きな動きはありません。</li>}
       </ul>
+
+      {/* 「はじめから」は誤操作防止のため、年度記録タブの最下部に折りたたみで配置。 */}
+      {onRestart && (
+        <details
+          className="danger-zone"
+          open={showDanger}
+          onToggle={(e) => setShowDanger(e.currentTarget.open)}
+        >
+          <summary>やり直し・初期化</summary>
+          <p className="danger-zone-note">今の進行状況は全て破棄されます。誤操作にご注意ください。</p>
+          <button type="button" className="ghost-btn danger" onClick={onRestart}>はじめからやり直す</button>
+        </details>
+      )}
     </div>
   );
 }
@@ -551,7 +573,7 @@ function useChangedInfraIds(infrastructures) {
   return pulseIds;
 }
 
-export function MobileTabShell({ view, bindings, auto }) {
+export function MobileTabShell({ view, bindings, auto, onRestart }) {
   const dashboardBinding = bindings.screens.dashboard;
   const dashboardVM = dashboardBinding?.getViewModel?.();
   const eventVM = bindings.screens.event?.getViewModel?.();
@@ -631,6 +653,7 @@ export function MobileTabShell({ view, bindings, auto }) {
         auto={auto}
         onOpenReport={onOpenReport}
         onOpenBudget={onOpenBudget}
+        onRestart={onRestart}
         todayItems={todayItems}
         nextHint={nextHint}
       />
